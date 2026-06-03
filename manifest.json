@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Jira Bulk Planner",
+  "version": "1.0.0",
+  "description": "Bulk update Jira issues from Excel/CSV files",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*.atlassian.net/*"
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "Jira Bulk Planner"
+  }
+}
