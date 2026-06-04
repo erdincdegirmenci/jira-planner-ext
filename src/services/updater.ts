@@ -1,5 +1,5 @@
 import { ValidationResult, UpdateResult, ExecutionReport, JiraConfig } from '../types';
-import { updateIssue } from './jiraService';
+import { updateIssue, getPlannedWeekOptions } from './jiraService';
 import { MAX_CONCURRENT_REQUESTS } from '../constants';
 
 async function processInBatches<T, R>(
@@ -9,14 +9,12 @@ async function processInBatches<T, R>(
   onProgress?: (current: number, total: number) => void
 ): Promise<R[]> {
   const results: R[] = [];
-
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
     const batchResults = await Promise.all(batch.map(processor));
     results.push(...batchResults);
     onProgress?.(Math.min(i + batchSize, items.length), items.length);
   }
-
   return results;
 }
 
@@ -30,14 +28,18 @@ export async function applyUpdates(
   const results = await processInBatches<ValidationResult, UpdateResult>(
     eligible,
     MAX_CONCURRENT_REQUESTS,
-    (row) =>
-      updateIssue(
+    async (row) => {
+      // Her issue için dinamik olarak option ID'lerini çek
+      const weekOptions = await getPlannedWeekOptions(config, row.issueKey);
+      return updateIssue(
         config,
         row.issueKey,
         row.assigneeAccountId!,
         row.storyPoints,
-        row.plannedWeekDay
-      ),
+        row.plannedWeekDay,
+        weekOptions
+      );
+    },
     onProgress
   );
 

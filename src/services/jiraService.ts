@@ -87,11 +87,11 @@ export async function updateIssue(
   issueKey: string,
   accountId: string,
   storyPoints: number,
-  plannedWeekDay: string
+  plannedWeekDay: string,
+  weekOptions: Record<string, string>
 ): Promise<UpdateResult> {
   try {
-
-    const weekOptionId = PLANNED_WEEK_OPTIONS[plannedWeekDay.trim()];
+    const weekOptionId = weekOptions[plannedWeekDay.trim()];
 
     const fields: Record<string, unknown> = {
       assignee: { name: accountId },
@@ -100,6 +100,8 @@ export async function updateIssue(
 
     if (weekOptionId) {
       fields[JIRA_FIELDS.PLANNED_WEEK_DAY] = { id: weekOptionId };
+    } else if (plannedWeekDay.trim()) {
+      console.warn('Planned week option not found for:', plannedWeekDay, 'in', weekOptions);
     }
 
     const body = { fields };
@@ -114,7 +116,10 @@ export async function updateIssue(
       return { issueKey, success: true };
     }
 
-    const errorData = await res.json().catch(() => ({})) as { errorMessages?: string[]; errors?: Record<string, string> };
+    const errorData = await res.json().catch(() => ({})) as {
+      errorMessages?: string[];
+      errors?: Record<string, string>;
+    };
     const errorMsg =
       errorData.errorMessages?.[0] ??
       Object.values(errorData.errors ?? {})[0] ??
@@ -127,5 +132,35 @@ export async function updateIssue(
       success: false,
       error: err instanceof Error ? err.message : 'Bilinmeyen hata',
     };
+  }
+}
+
+export async function getPlannedWeekOptions(
+  config: JiraConfig,
+  issueKey: string
+): Promise<Record<string, string>> {
+  try {
+    const res = await fetch(
+      `${config.baseUrl}/rest/api/2/issue/${issueKey}/editmeta`,
+      { headers: getHeaders(config) }
+    );
+    if (!res.ok) return {};
+
+    const data = await res.json() as {
+      fields: {
+        customfield_16163?: {
+          allowedValues?: Array<{ id: string; value: string }>;
+        };
+      };
+    };
+
+    const options: Record<string, string> = {};
+    const allowed = data.fields?.customfield_16163?.allowedValues ?? [];
+    for (const opt of allowed) {
+      options[opt.value] = opt.id;
+    }
+    return options;
+  } catch {
+    return {};
   }
 }
