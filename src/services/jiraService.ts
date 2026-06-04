@@ -1,20 +1,28 @@
 import { JiraConfig, UpdateResult } from '../types';
-import { JIRA_FIELDS } from '../constants';
+import { JIRA_FIELDS, PLANNED_WEEK_OPTIONS } from '../constants';
 
 function getHeaders(config: JiraConfig): HeadersInit {
+  // Jira Server/Data Center - Personal Access Token
   return {
-    Authorization: `Bearer ${config.apiToken}`,
-    Accept: 'application/json',
+    'Authorization': `Bearer ${config.apiToken}`,
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   };
 }
 export async function validateConnection(config: JiraConfig): Promise<boolean> {
   try {
-    const res = await fetch(`${config.baseUrl}/rest/api/3/myself`, {
+    const res = await fetch(`${config.baseUrl}/rest/api/2/myself`, {
       headers: getHeaders(config),
     });
+
+    if (!res.ok) {
+      console.log("Jira auth failed:", res.status);
+      console.log(await res.text());
+    }
+
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.error("Jira connection error:", err);
     return false;
   }
 }
@@ -24,7 +32,7 @@ export async function getIssue(
   issueKey: string
 ): Promise<boolean> {
   try {
-    const res = await fetch(`${config.baseUrl}/rest/api/3/issue/${issueKey}`, {
+    const res = await fetch(`${config.baseUrl}/rest/api/2/issue/${issueKey}`, {
       headers: getHeaders(config),
     });
     return res.ok;
@@ -39,16 +47,36 @@ export async function resolveAccountId(
 ): Promise<string | null> {
   try {
     const res = await fetch(
-      `${config.baseUrl}/rest/api/3/user/search?query=${encodeURIComponent(email)}`,
+      `${config.baseUrl}/rest/api/2/user/search?username=${encodeURIComponent(email)}`,
       { headers: getHeaders(config) }
     );
     if (!res.ok) return null;
 
-    const users = await res.json() as Array<{ accountId: string; emailAddress: string }>;
+    const users = await res.json() as Array<{
+      key: string;
+      name: string;
+      emailAddress: string;
+      displayName: string;
+      active: boolean;
+    }>;
+
+    if (!users || users.length === 0) return null;
+
+    // Aktif kullanıcılar arasında email ile eşleştir (case-insensitive)
     const match = users.find(
-      (u) => u.emailAddress?.toLowerCase() === email.toLowerCase()
+      (u) =>
+        u.active &&
+        u.emailAddress?.toLowerCase() === email.toLowerCase()
     );
-    return match?.accountId ?? null;
+
+    // Bulamazsan aktif ilk kullanıcıyı dön
+    const fallback = users.find((u) => u.active);
+
+    const user = match ?? fallback;
+    if (!user) return null;
+
+    // Jira Server: name alanını döndür (accountId değil)
+    return user.name;
   } catch {
     return null;
   }
@@ -62,15 +90,21 @@ export async function updateIssue(
   plannedWeekDay: string
 ): Promise<UpdateResult> {
   try {
-    const body = {
-      fields: {
-        assignee: { accountId },
-        [JIRA_FIELDS.STORY_POINTS]: storyPoints,
-        [JIRA_FIELDS.PLANNED_WEEK_DAY]: plannedWeekDay,
-      },
+
+    const weekOptionId = PLANNED_WEEK_OPTIONS[plannedWeekDay.trim()];
+
+    const fields: Record<string, unknown> = {
+      assignee: { name: accountId },
+      [JIRA_FIELDS.STORY_POINTS]: Number(storyPoints),
     };
 
-    const res = await fetch(`${config.baseUrl}/rest/api/3/issue/${issueKey}`, {
+    if (weekOptionId) {
+      fields[JIRA_FIELDS.PLANNED_WEEK_DAY] = { id: weekOptionId };
+    }
+
+    const body = { fields };
+
+    const res = await fetch(`${config.baseUrl}/rest/api/2/issue/${issueKey}`, {
       method: 'PUT',
       headers: getHeaders(config),
       body: JSON.stringify(body),
@@ -80,12 +114,13 @@ export async function updateIssue(
       return { issueKey, success: true };
     }
 
-    const errorData = await res.json().catch(() => ({})) as { errorMessages?: string[] };
-    return {
-      issueKey,
-      success: false,
-      error: errorData.errorMessages?.[0] ?? `HTTP ${res.status}`,
-    };
+    const errorData = await res.json().catch(() => ({})) as { errorMessages?: string[]; errors?: Record<string, string> };
+    const errorMsg =
+      errorData.errorMessages?.[0] ??
+      Object.values(errorData.errors ?? {})[0] ??
+      `HTTP ${res.status}`;
+
+    return { issueKey, success: false, error: errorMsg };
   } catch (err) {
     return {
       issueKey,

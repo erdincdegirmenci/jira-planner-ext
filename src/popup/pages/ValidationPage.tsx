@@ -86,13 +86,13 @@ export function ValidationPage({ rows, config, onApply, onBack }: Props) {
             <button onClick={onBack} style={{ background: '#f1f5f9', color: '#475569', flex: 1 }}>
               ← Geri
             </button>
-            <button
-              onClick={() => onApply(results)}
-              disabled={valid === 0}
-              style={{ background: '#16a34a', color: '#fff', flex: 2 }}
-            >
-              {valid} Kaydı Güncelle →
-            </button>
+           <button
+			  onClick={() => onApply(results)}
+			  disabled={valid === 0 || dryRun}
+			  style={{ background: dryRun ? '#94a3b8' : '#16a34a', color: '#fff', flex: 2 }}
+			>
+			  {dryRun ? 'Dry Run — Güncelleme devre dışı' : `${valid} Kaydı Güncelle →`}
+		</button>
           </div>
         </>
       )}

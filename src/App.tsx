@@ -68,15 +68,16 @@ export function App() {
     );
   }
 
-  if (page === 'preview' && parseResult) {
-    return (
-      <PreviewPage
-        result={parseResult}
-        onValidate={() => setPage('validation')}
-        onBack={() => setPage('upload')}
-      />
-    );
-  }
+	if (page === 'preview' && parseResult) {
+	  return (
+		<PreviewPage
+		  result={parseResult}
+		  config={config}
+		  onValidate={() => setPage('validation')}
+		  onBack={() => setPage('upload')}
+		/>
+	  );
+	}
 
   if (page === 'validation' && parseResult && config) {
     return (

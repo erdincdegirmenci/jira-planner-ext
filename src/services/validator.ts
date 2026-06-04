@@ -17,7 +17,10 @@ export async function validateRow(
     errors.push('Planned Week Day boş');
   }
 
-  if (!dryRun) {
+  if (dryRun) {
+    // Dry Run: Jira'ya bağlanma, email'i placeholder olarak kullan
+    assigneeAccountId = row.assigneeEmail;
+  } else {
     const issueExists = await getIssue(config, row.issueKey);
     if (!issueExists) {
       errors.push(`${row.issueKey} Jira'da bulunamadı`);

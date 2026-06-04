@@ -24,7 +24,7 @@ export function SettingsPage({ onSaved }: Props) {
   }, []);
 
   const handleSave = async () => {
-    if (!config.baseUrl || !config.email || !config.apiToken) {
+    if (!config.baseUrl || !config.apiToken) {
       setStatus('error');
       setMessage('Tüm alanları doldurun');
       return;
@@ -69,13 +69,16 @@ export function SettingsPage({ onSaved }: Props) {
             value={config.email}
             onChange={(e) => setConfig({ ...config, email: e.target.value.trim() })}
           />
+		  <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+			  Jira Server kullanıyorsanız email alanını boş bırakabilirsiniz
+		  </p>
         </div>
 
         <div>
           <label style={labelStyle}>API Token</label>
           <input
             type="password"
-            placeholder="Jira API token"
+            placeholder="Jira PAT veya API Token"
             value={config.apiToken}
             onChange={(e) => setConfig({ ...config, apiToken: e.target.value.trim() })}
           />

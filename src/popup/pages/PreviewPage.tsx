@@ -1,12 +1,13 @@
-import { ParseResult } from '../../types';
+import { ParseResult, JiraConfig } from '../../types';
 
 interface Props {
   result: ParseResult;
+  config: JiraConfig | null;
   onValidate: () => void;
   onBack: () => void;
 }
 
-export function PreviewPage({ result, onValidate, onBack }: Props) {
+export function PreviewPage({ result, config, onValidate, onBack }: Props) {
   return (
     <div style={{ padding: '20px' }}>
       <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
@@ -49,7 +50,24 @@ export function PreviewPage({ result, onValidate, onBack }: Props) {
           <tbody>
             {result.rows.map((row, i) => (
               <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                <td style={tdStyle}>{row.issueKey}</td>
+                <td style={tdStyle}>
+                 {config ? (
+					  <a
+						href={config.baseUrl + '/browse/' + row.issueKey}
+						target="_blank"
+						rel="noreferrer"
+						style={{
+						  color: '#3b82f6',
+						  textDecoration: 'none',
+						  fontWeight: 500,
+						}}
+					  >
+						{row.issueKey}
+					  </a>
+					) : (
+					  row.issueKey
+					)}
+                </td>
                 <td style={tdStyle}>{row.assigneeEmail}</td>
                 <td style={tdStyle}>{row.storyPoints}</td>
                 <td style={tdStyle}>{row.plannedWeekDay}</td>

@@ -1,16 +1,26 @@
 {
   "manifest_version": 3,
-  "name": "Jira Bulk Planner",
+  "name": "Jira Planner Ext",
   "version": "1.0.0",
   "description": "Bulk update Jira issues from Excel/CSV files",
   "permissions": [
     "storage"
   ],
   "host_permissions": [
-    "https://*.atlassian.net/*"
+    "https://*.atlassian.net/*",
+    "https://jira.logo.com.tr/*"
   ],
   "action": {
     "default_popup": "index.html",
-    "default_title": "Jira Bulk Planner"
+    "default_title": "Jira Planner Ext",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
-}
+}	

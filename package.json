@@ -3,11 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build && node scripts/copy-manifest.js",
-    "preview": "vite preview"
-  },
+	"scripts": {
+	  "dev": "vite",
+	  "build": "tsc && vite build && node scripts/copy-manifest.js",
+	  "build:zip": "npm run build && node scripts/create-zip.js",
+	  "preview": "vite preview"
+	},
   "dependencies": {
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
