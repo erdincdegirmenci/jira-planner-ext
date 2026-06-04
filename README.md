@@ -38,7 +38,7 @@ Extension'ı ilk açtığında Ayarlar sayfası gelir:
 | Alan | Açıklama | Örnek |
 |------|----------|-------|
 | Jira Base URL | Jira sunucunuzun adresi | `https://jira.logo.com.tr` |
-| Email | Jira hesabınızın emaili (opsiyonel) | `ad.soyad@logo.com.tr` |
+| Email | Jira hesabınızın emaili (opsiyonel) | `ad.soyad@jira.com.tr` |
 | API Token / PAT | Personal Access Token | `NjY...` |
 
 ### Personal Access Token nasıl alınır?
@@ -60,9 +60,9 @@ Excel veya CSV dosyası oluştur. Kolon isimleri büyük/küçük harf duyarsız
 
 | Issue Key | Assignee Email | Story Points | Planned Week Day |
 |-----------|---------------|--------------|-----------------|
-| PROJ-123 | ali@logo.com.tr | 5 | W24 |
-| PROJ-124 | ayse@logo.com.tr | 8 | W25 |
-| PROJ-125 | mehmet@logo.com.tr | 3 | W26 |
+| PROJ-123 | ali@jira.com.tr | 5 | W24 |
+| PROJ-124 | ayse@jira.com.tr | 8 | W25 |
+| PROJ-125 | mehmet@jira.com.tr | 3 | W26 |
 
 ### 2. Dosyayı Yükle
 
