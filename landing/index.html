@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jira Bulk Planner — Bulk update Jira issues from Excel and CSV</title>
+    <meta name="description" content="A Chrome Extension that bulk updates Jira issues from Excel or CSV files. Quickly manage Assignee, Story Points, and Planned Week Day fields.">
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, #e8f0fe 0%, #ffffff 100%);
+            border-radius: 0 0 2rem 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 1.5rem;
+            border-radius: 1.25rem;
+            box-shadow: 0 8px 24px rgba(0, 82, 204, 0.15);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #deebff;
+            color: #0052cc;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #4a5568;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background: #e2e8f0;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+        }
+
+        .timeline-item {
+            padding: 2rem 0;
+            position: relative;
+            width: 50%;
+            margin-left: auto;
+        }
+
+        .timeline-item:nth-child(even) {
+            margin-left: 0;
+            margin-right: auto;
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #2684ff;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            left: -60px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::before {
+            right: -60px;
+        }
+
+        .timeline-content h2 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .timeline-content p {
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-content ol,
+        .timeline-content ul {
+            color: #4a5568;
+            padding-left: 1.25rem;
+        }
+
+        .timeline-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-content a {
+            color: #0052cc;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .timeline-content a:hover {
+            text-decoration: underline;
+        }
+
+        .mockup {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .mockup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .mockup-btn {
+            display: inline-block;
+            background: #e2e8f0;
+            color: #64748b;
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.35rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .mockup-btn.primary {
+            background: #0052cc;
+            color: white;
+        }
+
+        .mockup-btn.success {
+            background: #16a34a;
+            color: white;
+        }
+
+        .mockup-dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            color: #64748b;
+            background: white;
+        }
+
+        .mockup-field {
+            margin-bottom: 0.6rem;
+        }
+
+        .mockup-field label {
+            display: block;
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-bottom: 0.2rem;
+        }
+
+        .mockup-field input {
+            width: 100%;
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.35rem;
+            font-size: 0.75rem;
+            background: white;
+            color: #334155;
+        }
+
+        .mockup-stats {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .mockup-stat {
+            flex: 1;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .mockup-stat .value {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .mockup-stat .label {
+            font-size: 0.65rem;
+            color: #64748b;
+        }
+
+        .mockup-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .mockup-table th,
+        .mockup-table td {
+            padding: 0.4rem 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .mockup-table th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .mockup-progress {
+            background: #e2e8f0;
+            border-radius: 99px;
+            height: 8px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .mockup-progress-bar {
+            height: 100%;
+            background: #16a34a;
+            border-radius: 99px;
+        }
+
+        .mockup-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+
+        .mockup-toggle .switch {
+            width: 36px;
+            height: 20px;
+            background: #16a34a;
+            border-radius: 99px;
+            position: relative;
+        }
+
+        .mockup-toggle .switch::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            right: 3px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: #4a5568;
+        }
+
+        .file-format {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin: 3rem 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .file-format h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .file-format p {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+        }
+
+        .format-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .format-table th,
+        .format-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .format-table th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .format-table td {
+            color: #4a5568;
+        }
+
+        .cta {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #0052cc;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: #0747a6;
+        }
+
+        .cta-button.secondary {
+            background: white;
+            color: #0052cc;
+            border: 2px solid #0052cc;
+        }
+
+        .cta-button.secondary:hover {
+            background: #deebff;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background: #2d3748;
+            color: white;
+            margin-top: 4rem;
+        }
+
+        footer a {
+            color: #90cdf4;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .timeline::before {
+                left: 31px;
+            }
+
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+
+            .timeline-item:nth-child(even) {
+                margin-left: 0;
+            }
+
+            .timeline-content::before {
+                left: -60px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="public/icon128.png" alt="Jira Bulk Planner Logo" class="logo">
+        <div class="badge">Chrome Extension</div>
+        <h1>Jira Bulk Planner</h1>
+        <p class="subtitle">A Chrome Extension that bulk updates Jira issues from Excel or CSV files. Manage Assignee, Story Points, and Planned Week Day fields in one go.</p>
+    </header>
+
+    <div class="container">
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <h2>1. Installation</h2>
+                    <p>To install the extension in Chrome, follow these steps:</p>
+                    <ol>
+                        <li>
+                            Download the latest release from the <b>GitHub Releases</b> page:<br>
+                            <a href="https://github.com/erdincdegirmenci/jira-planner-ext/releases" target="_blank" rel="noopener">Releases — Jira Bulk Planner</a>
+                        </li>
+                        <li>
+                            Extract the <b>jira-bulk-planner-vX.X.X.zip</b> file to a folder on your computer.
+                        </li>
+                        <li>
+                            Go to <b>chrome://extensions</b> in Chrome.
+                        </li>
+                        <li>
+                            Turn on <b>Developer mode</b> in the top-right corner.
+                        </li>
+                        <li>
+                            Click <b>Load unpacked</b> and select the extracted folder.
+                        </li>
+                        <li>
+                            Pin the extension from the puzzle icon (🧩) in the toolbar.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <h2>2. Jira Settings</h2>
+                    <p>When you first open the extension, configure your Jira connection. It connects to Jira Server / Data Center via Personal Access Token (PAT).</p>
+                    <div class="mockup">
+                        <div class="mockup-header">⚙️ Jira Settings</div>
+                        <div class="mockup-field">
+                            <label>Jira Base URL</label>
+                            <input type="text" value="https://jira.yourcompany.com" readonly>
+                        </div>
+                        <div class="mockup-field">
+                            <label>Email (optional)</label>
+                            <input type="text" value="name.surname@company.com" readonly>
+                        </div>
+                        <div class="mockup-field">
+                            <label>API Token / PAT</label>
+                            <input type="password" value="••••••••••••" readonly>
+                        </div>
+                        <span class="mockup-btn primary">Save & Connect</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <h2>3. Upload File</h2>
+                    <p>Drag and drop your Excel (.xlsx) or CSV file, or click to browse.</p>
+                    <div class="mockup">
+                        <div class="mockup-header">
+                            <span>📂 Upload File</span>
+                            <span class="mockup-btn">⚙️ Settings</span>
+                        </div>
+                        <div class="mockup-dropzone">
+                            📄 Drag your file here<br>
+                            <small>or click to select (.csv, .xlsx)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <h2>4. Preview</h2>
+                    <p>Preview the rows from your uploaded file. Check the count of valid and invalid rows.</p>
+                    <div class="mockup">
+                        <div class="mockup-header">👁️ Preview</div>
+                        <div class="mockup-stats">
+                            <div class="mockup-stat">
+                                <div class="value" style="color:#3b82f6">3</div>
+                                <div class="label">Total Rows</div>
+                            </div>
+                            <div class="mockup-stat">
+                                <div class="value" style="color:#16a34a">3</div>
+                                <div class="label">Valid</div>
+                            </div>
+                            <div class="mockup-stat">
+                                <div class="value" style="color:#dc2626">0</div>
+                                <div class="label">Invalid</div>
+                            </div>
+                        </div>
+                        <table class="mockup-table">
+                            <tr><th>Issue Key</th><th>Assignee</th><th>SP</th><th>Week</th></tr>
+                            <tr><td>PROJ-123</td><td>ali@jira.com</td><td>5</td><td>W24</td></tr>
+                            <tr><td>PROJ-124</td><td>ayse@jira.com</td><td>8</td><td>W25</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <h2>5. Validation</h2>
+                    <p>With <b>Dry Run</b> enabled, only format checks are performed. When disabled, it connects to Jira to verify issue and user existence.</p>
+                    <div class="mockup">
+                        <div class="mockup-header">✅ Validation</div>
+                        <div class="mockup-toggle">
+                            <div class="switch"></div>
+                            <span>Dry Run — validate without connecting to Jira</span>
+                        </div>
+                        <div class="mockup-stats">
+                            <div class="mockup-stat">
+                                <div class="value" style="color:#16a34a">3</div>
+                                <div class="label">Valid</div>
+                            </div>
+                            <div class="mockup-stat">
+                                <div class="value" style="color:#dc2626">0</div>
+                                <div class="label">Invalid</div>
+                            </div>
+                        </div>
+                        <span class="mockup-btn primary">Apply Updates</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <h2>6. Update & Report</h2>
+                    <p>Watch the progress bar during updates. When complete, view the detailed results report.</p>
+                    <div class="mockup">
+                        <div class="mockup-header">📊 Results Report</div>
+                        <div class="mockup-stats">
+                            <div class="mockup-stat">
+                                <div class="value" style="color:#3b82f6">3</div>
+                                <div class="label">Total</div>
+                            </div>
+                            <div class="mockup-stat">
+                                <div class="value" style="color:#16a34a">3</div>
+                                <div class="label">Updated</div>
+                            </div>
+                            <div class="mockup-stat">
+                                <div class="value" style="color:#dc2626">0</div>
+                                <div class="label">Failed</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:#64748b;margin-bottom:0.25rem">
+                            <span>Success rate</span><span>100%</span>
+                        </div>
+                        <div class="mockup-progress">
+                            <div class="mockup-progress-bar" style="width:100%"></div>
+                        </div>
+                        <span class="mockup-btn success">Upload New File</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="file-format">
+            <h2>File Format</h2>
+            <p>Column names are case-insensitive. Use the following example format:</p>
+            <table class="format-table">
+                <thead>
+                    <tr>
+                        <th>Issue Key</th>
+                        <th>Assignee Email</th>
+                        <th>Story Points</th>
+                        <th>Planned Week Day</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>PROJ-123</td>
+                        <td>ali@jira.com.tr</td>
+                        <td>5</td>
+                        <td>W24</td>
+                    </tr>
+                    <tr>
+                        <td>PROJ-124</td>
+                        <td>ayse@jira.com.tr</td>
+                        <td>8</td>
+                        <td>W25</td>
+                    </tr>
+                    <tr>
+                        <td>PROJ-125</td>
+                        <td>mehmet@jira.com.tr</td>
+                        <td>3</td>
+                        <td>W26</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>CSV & XLSX</h3>
+                <p>Supports Excel and CSV file formats. Use your existing planning spreadsheets directly.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Bulk Updates</h3>
+                <p>Update Assignee, Story Points, and Planned Week Day fields in one go.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🧪</div>
+                <h3>Dry Run Mode</h3>
+                <p>Preview and validate your data before touching Jira.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✅</div>
+                <h3>Validation Report</h3>
+                <p>See a detailed summary of valid and invalid rows.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3>Execution Report</h3>
+                <p>Get a results report of updated and failed issues.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Jira Server / DC</h3>
+                <p>Jira Server and Data Center support via Personal Access Token.</p>
+            </div>
+        </div>
+
+        <div class="cta">
+            <div class="cta-buttons">
+                <a href="https://github.com/erdincdegirmenci/jira-planner-ext/releases" class="cta-button" target="_blank" rel="noopener">Download</a>
+                <a href="https://github.com/erdincdegirmenci/jira-planner-ext" class="cta-button secondary" target="_blank" rel="noopener">View on GitHub</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Jira Bulk Planner — Chrome Extension for Bulk Jira Updates</p>
+        <p><a href="https://github.com/erdincdegirmenci/jira-planner-ext/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></p>
+    </footer>
+</body>
+</html>
